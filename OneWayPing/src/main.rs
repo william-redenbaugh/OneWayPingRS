@@ -17,7 +17,8 @@ fn main() {
 struct BaseArguments{
     args: Vec<String>, 
     is_client: bool,
-    port: u16
+    port: u16, 
+    ip_addr: String
 }
 
 fn get_arguments() -> BaseArguments{
@@ -25,6 +26,8 @@ fn get_arguments() -> BaseArguments{
     
     let mut check_is_client = false; 
     let mut invalid_input = true;
+    let mut parsed_port: u16 = 3030; 
+    let mut parsed_ip: String = String::from(""); 
     for strings in &args_input{
         if strings == "-c" {
             check_is_client = true; 
@@ -33,8 +36,13 @@ fn get_arguments() -> BaseArguments{
         if strings == "-s" {
             invalid_input = false; 
         }
-        match strings.get(0..2) {
-            
+        if strings.get(0..2).unwrap() == "-p"{
+            let port_str = strings.get(2..(strings.chars().count())).unwrap();
+            parsed_port = port_str.parse::<u16>().unwrap();
+        }
+
+        if strings.get(0..2).unwrap() == "-i"{
+            parsed_ip = strings.get(2..(strings.chars().count())).unwrap().to_string();
         }
     }
 
@@ -44,7 +52,9 @@ fn get_arguments() -> BaseArguments{
 
     let base_arguments = BaseArguments{
         args: args_input, 
-        is_client: check_is_client
+        is_client: check_is_client, 
+        port: parsed_port,
+        ip_addr: parsed_ip
     };
     return base_arguments;
 }
