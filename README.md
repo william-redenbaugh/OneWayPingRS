@@ -1,7 +1,7 @@
 # OneWayPingRS
-## "One Way Ping Application"
+## One Way Ping Application
 
-### "The Argument for OneWayPingRS"
+### The Argument for OneWayPingRS
 
 OneWayPingRS is an attempt to measure latency between unidirectional data transmissions of varying sizes. It’s inspired by OWAMP’s one way ping too, and the limitations of that tool.  OWAMP is very good for measuring one way ping, but has a few limitations that prompted me to design a new application. This document will serve a few purposes: To explain OneWayPingRS and how it compares to OWAMP’s one way ping, the design requirements and goals, and the control flow of the program. 
 
