@@ -2,6 +2,7 @@ use std::net::UdpSocket;
 use std::net::SocketAddr;
 use std::env;
 use chrono::prelude::*;
+extern crate local_ip; 
 
 fn main() {
     let base_arguments = get_arguments();
@@ -112,8 +113,9 @@ fn start_server(base_arguments: BaseArguments){
     println!("One Way Ping Server: getting ready...");
     println!("Waiting accepting Clients");
 
+    let ip = local_ip::get().unwrap();
     let port_string = base_arguments.port.to_string();
-    let ip_port_str = String::from("127.0.0.1:".to_owned() + port_string.as_str());
+    let ip_port_str = String::from(ip.to_string() + port_string.as_str());
     let udp_socket = UdpSocket::bind(ip_port_str).unwrap();
 
     udp_socket.set_nonblocking(false).unwrap(); 
@@ -124,8 +126,9 @@ fn start_client(base_arguments: BaseArguments){
     println!("One Way Ping Client: getting ready...");
     println!("Establishing Connection with server");
 
+    let ip = local_ip::get().unwrap();
     let port_string = base_arguments.port.to_string();
-    let ip_port_str = String::from("127.0.0.1:".to_owned() + port_string.as_str());
+    let ip_port_str = String::from(ip.to_string() + port_string.as_str());
     let socket = UdpSocket::bind(ip_port_str).unwrap();
 
     let ip_port_str = base_arguments.ip_addr.as_str().to_owned() + ":" + port_string.as_str();
