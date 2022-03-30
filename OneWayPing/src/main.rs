@@ -1,21 +1,18 @@
 use std::net::UdpSocket;
-use std::io::prelude::*;
-use std::io::prelude::*;
 use std::env;
-
+use chrono::prelude::*;
 
 fn main() {
     let base_arguments = get_arguments();
     
     // Whether or not this will be a server or client
     match base_arguments.is_client {
-        true=>get_arguments_client(base_arguments), 
-        false=>get_arguments_server(base_arguments),
+        true=>start_client(base_arguments), 
+        false=>start_server(base_arguments),
     }
 }
 
 struct BaseArguments{
-    args: Vec<String>, 
     is_client: bool,
     port: u16, 
     ip_addr: String
@@ -50,8 +47,7 @@ fn get_arguments() -> BaseArguments{
         panic!("Could not parse OneWayPingRS mode... closing.");
     }
 
-    let base_arguments = BaseArguments{
-        args: args_input, 
+    let base_arguments = BaseArguments{ 
         is_client: check_is_client, 
         port: parsed_port,
         ip_addr: parsed_ip
@@ -59,19 +55,62 @@ fn get_arguments() -> BaseArguments{
     return base_arguments;
 }
 
-fn get_arguments_server(base_arguments: BaseArguments){
+pub fn get_unix_timestamp_us() -> i64 {
+    let now = Utc::now();
+    now.timestamp_nanos() as i64
+}
+
+fn as_i64_le(array: &[u8; 8]) -> i64 {
+    ((array[0] as i64) <<  0) +
+    ((array[1] as i64) <<  8) +
+    ((array[2] as i64) << 16) +
+    ((array[3] as i64) << 24) +
+    ((array[4] as i64) << 32) +
+    ((array[5] as i64) << 40) +
+    ((array[6] as i64) << 48) +
+    ((array[7] as i64) << 56)
+}
+
+fn start_server(base_arguments: BaseArguments){
     println!("One Way Ping Server: getting ready...");
+    println!("Waiting accepting Clients");
 
+    let port_string = base_arguments.port.to_string();
+    let ip_port_str = String::from("127.0.0.1:".to_owned() + port_string.as_str());
+    let socket = UdpSocket::bind(ip_port_str).unwrap();
+
+    socket.set_nonblocking(false).unwrap(); 
+    loop{
+        let mut buf = [0; 10];
+        let (_ , src) = socket.recv_from(&mut buf).unwrap();
+        let timestamp_bytearray = get_unix_timestamp_us().to_be_bytes();
+        socket.send_to(&timestamp_bytearray, &src).expect("Couldn't send data");
+    }
 }
 
-fn get_arguments_client(base_arguments: BaseArguments){
+fn start_client(base_arguments: BaseArguments){
     println!("One Way Ping Client: getting ready...");
-}
+    println!("Establishing Connection with server");
 
-fn server(){
+    let port_string = base_arguments.port.to_string();
+    let ip_port_str = String::from("127.0.0.1:".to_owned() + port_string.as_str());
+    let socket = UdpSocket::bind(ip_port_str).unwrap();
 
-}
+    let ip_port_str = base_arguments.ip_addr.as_str().to_owned() + ":" + port_string.as_str();
+    socket.set_nonblocking(false).unwrap(); 
 
-fn client(){
+    // Default at minimal offset
+    let mut offset: i64 = 0; 
+    loop{
+        let mut buf: [u8; 8] = [0; 8];
+        println!("{}", ip_port_str);
+        socket.send_to(&buf, &ip_port_str).unwrap();
 
+        // Get current time stamp from device, calculate offset timestamp for one way ping. 
+        socket.recv_from(&mut buf).unwrap(); 
+        let timestamp = as_i64_le(&buf); 
+        offset = timestamp - get_unix_timestamp_us();
+
+        break; 
+    }
 }
