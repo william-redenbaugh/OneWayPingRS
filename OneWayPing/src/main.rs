@@ -89,6 +89,13 @@ fn as_i64_le(array: &[u8; 8]) -> i64 {
     ((array[7] as i64) << 56)
 }
 
+fn u32_le(array: &[u8; 4]) -> u32{
+    ((array[0] as u32) <<  0) +
+    ((array[1] as u32) <<  8) +
+    ((array[2] as u32) << 16) +
+    ((array[3] as u32) << 24)
+}
+
 fn setup_connection(socket:  &UdpSocket, ip_port_str: String, total_messages: u32) -> i64{
     // Send Total Message number to host
     let total_messages_bytestream = total_messages.to_le_bytes();
@@ -101,12 +108,13 @@ fn setup_connection(socket:  &UdpSocket, ip_port_str: String, total_messages: u3
     timestamp - get_unix_timestamp_us()
 }
 
-fn handle_client(socket: &UdpSocket) -> SocketAddr{
-    let mut buf = [0; 10];
+fn handle_client(socket: &UdpSocket) -> (u32, SocketAddr){
+    let mut buf = [0; 4];
     let (_ , src) = socket.recv_from(&mut buf).unwrap();
+    let num_messages = u32_le(&buf);
     let timestamp_bytearray = get_unix_timestamp_us().to_le_bytes();
     socket.send_to(&timestamp_bytearray, &src).expect("Couldn't send data");
-    return src; 
+    return (num_messages, src); 
 }
 
 fn start_server(base_arguments: BaseArguments){
@@ -119,10 +127,14 @@ fn start_server(base_arguments: BaseArguments){
     let udp_socket = UdpSocket::bind(ip_port_str).unwrap();
 
     udp_socket.set_nonblocking(false).unwrap(); 
-    let client_socket = handle_client(&udp_socket);
+    let  (num_messages, client_socket) = handle_client(&udp_socket);
+    let mut timestamps_ns_arr: vec![u64; num_messages];
 
-    println!("{}", client_socket);
+    println!("Client Socket: {}, Num Messages {}", client_socket, num_messages);
 
+    loop{
+        
+    }
 }
 
 fn start_client(base_arguments: BaseArguments){
