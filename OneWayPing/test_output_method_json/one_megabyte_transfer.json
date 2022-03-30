@@ -1,0 +1,6 @@
+{
+    "message_protocol": "udp", 
+    "message_type": "bitstream", 
+    "message_size_bytes": 1048576, 
+    "total_messages": 20
+}
