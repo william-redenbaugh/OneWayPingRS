@@ -115,11 +115,14 @@ fn start_server(base_arguments: BaseArguments){
 
     let ip = local_ip::get().unwrap();
     let port_string = base_arguments.port.to_string();
-    let ip_port_str = String::from(ip.to_string() + port_string.as_str());
+    let ip_port_str = String::from(ip.to_string() + &":".to_owned()  + port_string.as_str());
     let udp_socket = UdpSocket::bind(ip_port_str).unwrap();
 
     udp_socket.set_nonblocking(false).unwrap(); 
     let client_socket = handle_client(&udp_socket);
+
+    println!("{}", client_socket);
+
 }
 
 fn start_client(base_arguments: BaseArguments){
@@ -128,7 +131,8 @@ fn start_client(base_arguments: BaseArguments){
 
     let ip = local_ip::get().unwrap();
     let port_string = base_arguments.port.to_string();
-    let ip_port_str = String::from(ip.to_string() + port_string.as_str());
+    let ip_port_str = String::from(ip.to_string() + &":".to_owned() + port_string.as_str());
+    println!("{}", ip_port_str);
     let socket = UdpSocket::bind(ip_port_str).unwrap();
 
     let ip_port_str = base_arguments.ip_addr.as_str().to_owned() + ":" + port_string.as_str();
