@@ -135,4 +135,6 @@ fn start_client(base_arguments: BaseArguments){
     socket.set_nonblocking(false).unwrap();
 
     let time_offset = setup_connection(&socket, ip_port_str, base_arguments.total_messages); 
+
+    println!("Time Offset {}", time_offset);
 }
