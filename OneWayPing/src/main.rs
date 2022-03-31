@@ -139,6 +139,8 @@ fn start_server(base_arguments: BaseArguments){
     println!("One Way Ping Server: getting ready...");
     println!("Waiting accepting Clients");
 
+    let init_time = get_unix_timestamp_us();
+
     let ip = local_ip::get().unwrap();
     let port_string = base_arguments.port.to_string();
     let ip_port_str = String::from(ip.to_string() + &":".to_owned()  + port_string.as_str());
@@ -149,20 +151,21 @@ fn start_server(base_arguments: BaseArguments){
     let mut timestamps_ns_arr: Vec<i64> = Vec::with_capacity(num_messages as usize);
     println!("Client Socket: {}, Num Messages {}", client_socket, num_messages);
 
-    let num_transfers_per_msg = msg_length/512 + 1; 
+    let num_transfers_per_msg = msg_length/512; 
     let mut num_transfers_current_msg = 0; 
     let mut total_transfers = 0; 
     loop{
         let mut buf: [u8; 600] = [0; 600];
         udp_socket.recv(&mut buf).unwrap();
-        
-        total_transfers += 1; 
-        num_transfers_current_msg += 1; 
 
         if num_transfers_current_msg == num_transfers_per_msg {
-            timestamps_ns_arr[total_transfers] = get_unix_timestamp_us();
+            timestamps_ns_arr.push(get_unix_timestamp_us());
             num_transfers_current_msg = 0; 
+            println!("Total Transfers: {}, Current Timestamp: {}", total_transfers, (timestamps_ns_arr[total_transfers] - init_time)/1000000);
+            total_transfers += 1; 
         }
+        num_transfers_current_msg += 1; 
+
         // Completed Transmisstion
         if total_transfers == num_messages as usize * msg_length as usize{
             break; 
