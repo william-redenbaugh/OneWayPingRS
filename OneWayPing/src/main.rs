@@ -107,7 +107,7 @@ fn as_u64_le(array: &[u8; 8]) -> u64 {
     ((array[7] as u64) << 56)
 }
 
-fn setup_connection(socket:  &UdpSocket, ip_port_str: String, total_messages: u64, message_length: u64) -> i64{
+fn setup_connection(socket:  &UdpSocket, ip_port_str: &String, total_messages: u64, message_length: u64) -> i64{
     // Send Total Message number to host
     let total_messages_bytestream = total_messages.to_le_bytes();
     let message_size_bytesstream = message_length.to_le_bytes();
@@ -183,7 +183,14 @@ fn start_client(base_arguments: BaseArguments){
     let ip_port_str = base_arguments.ip_addr.as_str().to_owned() + ":" + port_string.as_str();
     socket.set_nonblocking(false).unwrap();
 
-    let time_offset = setup_connection(&socket, ip_port_str, base_arguments.total_messages, base_arguments.message_size_bytes); 
+    let time_offset = setup_connection(&socket, &ip_port_str, base_arguments.total_messages, base_arguments.message_size_bytes); 
+
+    let total_transfers = (base_arguments.total_messages * base_arguments.message_size_bytes) / 512; 
+
+    for i in 0..total_transfers {
+        let buff: [u8; 512] = [0; 512]; 
+        socket.send_to(&buff, &ip_port_str).unwrap();        
+    }
 
     println!("Time Offset {}", time_offset);
 }
